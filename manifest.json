@@ -1,0 +1,31 @@
+{
+  "manifest_version": 3,
+  "name": "Linkwarden-Send",
+  "version": "0.0.0",
+
+  "description": "Quickly send a batch of URLs to linkwarden for storage",
+  "homepage_url": "https://github.com/h8moss/todo",
+
+  "icons": {
+    "48": "icons/lw-send-48.png"
+  },
+
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "linkwarden-send@h8code",
+      "data_collection_permissions": {
+        "required": ["none"]
+      }
+    }
+  },
+  "permissions": ["contextMenus"],
+  "action": {
+    "default_icon": "icons/lw-send-32.png",
+    "default_title": "Linkwarden Send config",
+    "default_popup": "popup/linkwarden-send.html"
+  },
+  "background": {
+    "scripts": ["background.js"],
+    "persistent": false
+  }
+}
