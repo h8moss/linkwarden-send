@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "Linkwarden-Send",
+  "name": "Linkwarden Send",
   "version": "0.0.0",
 
   "description": "Quickly send a batch of URLs to linkwarden for storage",
@@ -18,14 +18,14 @@
       }
     }
   },
-  "permissions": ["contextMenus"],
+  "permissions": ["contextMenus", "storage", "activeTab", "tabs"],
+  "optional_host_permissions": ["<all_urls>"],
   "action": {
     "default_icon": "icons/lw-send-32.png",
     "default_title": "Linkwarden Send config",
     "default_popup": "popup/linkwarden-send.html"
   },
   "background": {
-    "scripts": ["background.js"],
-    "persistent": false
+    "scripts": ["common/storage.js", "common/permissions.js", "common/linkwarden-api.js", "background.js"]
   }
 }

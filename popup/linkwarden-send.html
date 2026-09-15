@@ -2,22 +2,42 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
+    <link rel="stylesheet" href="main.css" />
   </head>
   <body>
-    <div>
+    <div class="column">
       <h2>Connection settings</h2>
-      <div>
-        <label>Server: </label>
-        <input />
-        <label>API key: </label>
-        <input />
-        <div>
-          <button>Test connection</button>
-          <button>Save</button>
+      <div class="column">
+        <div class="row">
+          <label>Server: </label>
+          <input id="server-input" placeholder="http://my-server.com/" />
         </div>
+        <div class="row">
+          <label>API key: </label>
+          <input id="api-key-input" type="password" />
+        </div>
+        <div class="row">
+          <button id="test-connection" class="orange-button">
+            Test connection
+          </button>
+          <button id="save-connection" disabled>Save</button>
+        </div>
+        <div id="connection-status" class="status"></div>
       </div>
       <h2>Context menu settings</h2>
-      <div></div>
+      <div class="column">
+        <div id="context-menu-disabled-notice" class="status" hidden>
+          Configure and save a server connection first.
+        </div>
+        <div class="column" id="context-menu-list"></div>
+        <button id="add-button">+</button>
+        <button id="save-context-menu">Save</button>
+        <div id="context-menu-status" class="status"></div>
+      </div>
     </div>
+    <script src="../common/storage.js"></script>
+    <script src="../common/permissions.js"></script>
+    <script src="../common/linkwarden-api.js"></script>
+    <script src="main.js"></script>
   </body>
 </html>
