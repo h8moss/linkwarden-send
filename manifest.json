@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Linkwarden Send",
-  "version": "0.0.0",
+  "version": "0.1.0",
 
   "description": "Quickly send a batch of URLs to linkwarden for storage",
   "homepage_url": "https://github.com/h8moss/todo",
@@ -26,6 +26,11 @@
     "default_popup": "popup/linkwarden-send.html"
   },
   "background": {
-    "scripts": ["common/storage.js", "common/permissions.js", "common/linkwarden-api.js", "background.js"]
+    "scripts": [
+      "common/storage.js",
+      "common/permissions.js",
+      "common/linkwarden-api.js",
+      "background.js"
+    ]
   }
 }
