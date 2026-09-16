@@ -41,10 +41,15 @@ const getLinkwardenTags = async (server, apikey) => {
   return json.data?.tags || [];
 };
 
-const saveLinkToLinkwarden = async (server, apikey, { url, collection, tags }) => {
+const saveLinkToLinkwarden = async (server, apikey, { url, collectionId, tags }) => {
   const body = {
     url,
-    ...(collection ? { collection: { name: collection } } : {}),
+    // Matching an existing collection by name alone is unreliable (case
+    // differences, duplicate names under different parents, collections
+    // shared with you but owned by someone else), which caused the server
+    // to create a duplicate collection instead of reusing the selected
+    // one. The id is unambiguous.
+    ...(collectionId ? { collection: { id: Number(collectionId) } } : {}),
     tags: (tags || []).filter(Boolean).map((name) => ({ name })),
   };
 

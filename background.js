@@ -37,12 +37,18 @@ const updateContextMenu = async () => {
 const getTargetUrls = async (info, tab) => {
   if (info.linkUrl) return [info.linkUrl];
 
-  const highlighted = await browser.tabs.query({
-    highlighted: true,
-    windowId: tab.windowId,
-  });
-  const urls = highlighted.map((t) => t.url).filter(Boolean);
-  if (urls.length > 0) return urls;
+  // The active tab is always highlighted, so querying highlighted tabs
+  // unconditionally would send the active tab even when the click landed
+  // on an unrelated, non-highlighted background tab. Only fall back to the
+  // whole highlighted set when the clicked tab is actually part of it.
+  if (tab.highlighted) {
+    const highlighted = await browser.tabs.query({
+      highlighted: true,
+      windowId: tab.windowId,
+    });
+    const urls = highlighted.map((t) => t.url).filter(Boolean);
+    if (urls.length > 0) return urls;
+  }
 
   return tab.url ? [tab.url] : [];
 };
@@ -64,7 +70,7 @@ browser.contextMenus.onClicked.addListener(async (info, tab) => {
     try {
       await saveLinkToLinkwarden(server, apikey, {
         url,
-        collection: menu.collection,
+        collectionId: menu.collectionId,
         tags: menu.tags,
       });
     } catch (e) {

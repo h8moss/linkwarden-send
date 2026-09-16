@@ -7,7 +7,7 @@ const loadAutocompleteData = async (server, apikey) => {
       getLinkwardenCollections(server, apikey),
       getLinkwardenTags(server, apikey),
     ]);
-    availableCollections = collections.map((c) => c.name);
+    availableCollections = collections.map((c) => ({ id: c.id, name: c.name }));
     availableTags = tags.map((t) => t.name);
   } catch (e) {
     console.error("Linkwarden Send: failed to load collections/tags", e);
@@ -108,7 +108,7 @@ const createLabeledInput = (labelText, className, value) => {
   return wrapper;
 };
 
-const populateCollectionSelect = (select, selectedName) => {
+const populateCollectionSelect = (select, selectedId, selectedName) => {
   select.innerHTML = "";
 
   const defaultOption = document.createElement("option");
@@ -116,30 +116,37 @@ const populateCollectionSelect = (select, selectedName) => {
   defaultOption.textContent = "Unorganized";
   select.appendChild(defaultOption);
 
-  for (const name of availableCollections) {
+  for (const { id, name } of availableCollections) {
     const option = document.createElement("option");
-    option.value = name;
+    option.value = id;
     option.textContent = name;
     select.appendChild(option);
   }
 
-  if (selectedName && !availableCollections.includes(selectedName)) {
+  const knownMatch = availableCollections.some(
+    (c) => String(c.id) === String(selectedId),
+  );
+  if (selectedId && !knownMatch) {
+    // Collection no longer resolvable from the current list (deleted,
+    // renamed, or collections failed to load). Keep it selectable so the
+    // saved config isn't silently lost, labeled with its last-known name.
     const option = document.createElement("option");
-    option.value = selectedName;
-    option.textContent = selectedName;
+    option.value = selectedId;
+    option.textContent = selectedName ? `${selectedName} (not found)` : "(unknown collection)";
     select.appendChild(option);
   }
 
-  select.value = selectedName || "";
+  select.value = selectedId || "";
 };
 
 const refreshCollectionOptions = () => {
   document.querySelectorAll(".menu-collection").forEach((select) => {
-    populateCollectionSelect(select, select.value);
+    const selectedOption = select.options[select.selectedIndex];
+    populateCollectionSelect(select, select.value, selectedOption?.textContent);
   });
 };
 
-const createCollectionSelect = (selectedName) => {
+const createCollectionSelect = (selectedId, selectedName) => {
   const wrapper = document.createElement("div");
   wrapper.className = "column";
 
@@ -149,7 +156,7 @@ const createCollectionSelect = (selectedName) => {
 
   const select = document.createElement("select");
   select.className = "menu-collection";
-  populateCollectionSelect(select, selectedName);
+  populateCollectionSelect(select, selectedId, selectedName);
 
   wrapper.appendChild(select);
   return wrapper;
@@ -280,7 +287,7 @@ const addUIMenu = (menu) => {
   row.className = "row";
 
   row.appendChild(createLabeledInput("Title", "menu-title", menu.title));
-  row.appendChild(createCollectionSelect(menu.collection));
+  row.appendChild(createCollectionSelect(menu.collectionId, menu.collectionName));
   row.appendChild(createTagAutocomplete(menu.tags));
 
   const removeButton = document.createElement("button");
@@ -297,12 +304,17 @@ const saveContextMenuItems = async () => {
   const statusEl = document.querySelector("#context-menu-status");
   const items = [...document.querySelectorAll(".menu-item")];
   const menus = items
-    .map((item) => ({
-      id: item.dataset.id,
-      title: item.querySelector(".menu-title").value.trim(),
-      collection: item.querySelector(".menu-collection").value.trim(),
-      tags: [...item.querySelectorAll(".tag-chip")].map((chip) => chip.dataset.tag),
-    }))
+    .map((item) => {
+      const collectionSelect = item.querySelector(".menu-collection");
+      const selectedOption = collectionSelect.options[collectionSelect.selectedIndex];
+      return {
+        id: item.dataset.id,
+        title: item.querySelector(".menu-title").value.trim(),
+        collectionId: collectionSelect.value.trim(),
+        collectionName: selectedOption ? selectedOption.textContent : "",
+        tags: [...item.querySelectorAll(".tag-chip")].map((chip) => chip.dataset.tag),
+      };
+    })
     .filter((menu) => menu.title !== "");
 
   await browser.storage.local.set({ [desiredActionsStoragekey]: menus });
@@ -322,7 +334,7 @@ const loadSavedValues = (server, apikey, menus) => {
 
   if (!menus || menus.length === 0) {
     menus = [
-      { id: crypto.randomUUID(), title: "Send to linkwarden", collection: "", tags: [] },
+      { id: crypto.randomUUID(), title: "Send to linkwarden", collectionId: "", collectionName: "", tags: [] },
     ];
   }
   clearUIMenus();
@@ -344,7 +356,7 @@ document
   .querySelector("#api-key-input")
   .addEventListener("input", resetConnectionState);
 document.querySelector("#add-button").addEventListener("click", () => {
-  addUIMenu({ id: crypto.randomUUID(), title: "", collection: "", tags: [] });
+  addUIMenu({ id: crypto.randomUUID(), title: "", collectionId: "", collectionName: "", tags: [] });
 });
 document
   .querySelector("#save-context-menu")
